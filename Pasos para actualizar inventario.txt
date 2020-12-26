@@ -1,0 +1,42 @@
+//////////////////Descargar Archivo de Inventario//////////////////
+
+Realizar filtro al archivo de inventario en las bodegas: palmetto1, palmetto2, Ciudadela y Tonline
+Concatenar codigo con talla
+Crear Tabla dinamica para sumar cantidades de referencias
+Crear una tabla con los campos ID,sku, cantidad,meta_id
+Cargar estos datos a las tablas SQL (existencias y existencias_meta)
+
+///////////////////Descargar Consulta //////////////////////////
+
+SELECT * FROM `PGEA_wc_product_meta_lookup`
+INNER JOIN `PGEA_postmeta` ON `PGEA_wc_product_meta_lookup`.`product_id`= `PGEA_postmeta`.`post_id`
+INNER JOIN `PGEA_posts` ON `PGEA_wc_product_meta_lookup`.`product_id`= `PGEA_posts`.`ID`
+WHERE `PGEA_postmeta`.`meta_key`= "_stock" AND `PGEA_posts`.`post_type`= "product_variation";
+
+Con el fin de obtener los datos del meta_id, ya que el campo post_id no es único.
+
+///////////////////// Actualizar Referencias /////////////////////
+
+UPDATE `PGEA_postmeta`
+INNER JOIN `existencias` ON `PGEA_postmeta`.`post_id` = `existencias`.`ID`
+SET `PGEA_postmeta`.`meta_value` = `existencias`.`cantidad` 
+WHERE `PGEA_postmeta`.`meta_key` = "_stock" 
+
+////// Actualizar instock a productos que tengan existencias////////////
+
+UPDATE `PGEA_postmeta`
+INNER JOIN `existencias_meta` ON `PGEA_postmeta`.`post_id`= `existencias_meta`.`ID`
+SET `PGEA_postmeta`.`meta_value` = "instock"
+WHERE  `PGEA_postmeta`.`meta_key`="_stock_status" AND `existencias_meta`.`CANTIDAD`>0 
+
+
+////////////////Update Product Meta Lookup ////////////// (Paso necesario para actualizar la tabla de consultas de la API)
+
+UPDATE `PGEA_wc_product_meta_lookup`
+INNER JOIN `existencias` ON `PGEA_wc_product_meta_lookup`.`product_id`= `existencias`.`ID`
+SET `PGEA_wc_product_meta_lookup`.`stock_quantity` = `existencias`.`cantidad`
+
+
+
+
+
